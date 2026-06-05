@@ -3,6 +3,17 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
+// Definimos la estructura exacta de cuando el backend responde con éxito (200 OK)
+interface RegisterSuccessResponse {
+    msg: string;
+}
+
+// Definimos la estructura de cuando el backend responde con un error (400, 500, etc.)
+interface RegisterErrorResponse {
+    msg?: string;
+    error?: string;
+}
+
 export default function RegisterPage() {
     const [formData, setFormData] = useState({
         username: '',
@@ -33,26 +44,29 @@ export default function RegisterPage() {
                 body: JSON.stringify({
                     username: formData.username,
                     email: formData.email,
-                    pass: formData.password // Asegúrate si tu backend pide 'pass' o 'password'
+                    password: formData.password
                 })
             });
 
             if (res.ok) {
-                const data = await res.json();
+                // Tipamos la respuesta como éxito estricto
+                const data: RegisterSuccessResponse = await res.json();
+                alert(data.msg || "¡Usuario registrado con éxito!");
                 
-                // Guardamos token y user para inicio de sesión automático tras registro
-                // Esto evita el error de contexto en el Navbar
-                localStorage.setItem('token', data.token);
-                localStorage.setItem('user', JSON.stringify(data.user));
-                
-                router.push('/');
+                // Redireccionamos al login ya que el backend de registro no inicia sesión automáticamente
+                router.push('/login');
                 router.refresh();
             } else {
-                const errorData = await res.json();
-                alert(errorData.message || "Error al registrarse");
+                // Tipamos la respuesta como error estricto
+                const errorData: RegisterErrorResponse = await res.json();
+                
+                // Buscamos si el backend envió el fallo en 'msg' o en 'error'
+                const errorMessage = errorData.msg || errorData.error || "Error al registrarse";
+                alert(errorMessage);
             }
         } catch (error) {
             console.error("Error en registro:", error);
+            alert("Hubo un error de conexión con el servidor.");
         } finally {
             setLoading(false);
         }
@@ -79,6 +93,7 @@ export default function RegisterPage() {
                         type="text" 
                         name="username"
                         required
+                        value={formData.username}
                         placeholder="Nombre de usuario"
                         className="w-full p-4 bg-[#333] text-white rounded outline-none border-b-2 border-transparent focus:border-red-600 transition-all"
                         onChange={handleChange}
@@ -88,6 +103,7 @@ export default function RegisterPage() {
                         type="email" 
                         name="email"
                         required
+                        value={formData.email}
                         placeholder="Correo electrónico"
                         className="w-full p-4 bg-[#333] text-white rounded outline-none border-b-2 border-transparent focus:border-red-600 transition-all"
                         onChange={handleChange}
@@ -97,6 +113,7 @@ export default function RegisterPage() {
                         type="password" 
                         name="password"
                         required
+                        value={formData.password}
                         placeholder="Contraseña"
                         className="w-full p-4 bg-[#333] text-white rounded outline-none border-b-2 border-transparent focus:border-red-600 transition-all"
                         onChange={handleChange}
@@ -106,6 +123,7 @@ export default function RegisterPage() {
                         type="password" 
                         name="confirmPassword"
                         required
+                        value={formData.confirmPassword}
                         placeholder="Confirmar contraseña"
                         className="w-full p-4 bg-[#333] text-white rounded outline-none border-b-2 border-transparent focus:border-red-600 transition-all"
                         onChange={handleChange}

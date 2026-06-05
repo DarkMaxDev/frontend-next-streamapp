@@ -2,12 +2,7 @@
 import { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { User } from '../app/types';
-import { apiFetch,ApiFetchError } from '../app/utils/api';
-
-interface ApiError {
-  response?: { status?: number; data?: { msg?: string } };
-  message?: string;
-}
+import { apiFetch, ApiFetchError } from '../app/utils/api';
 
 interface AuthContextType {
   user: User | null;
@@ -25,7 +20,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState<boolean>(true);
   const router = useRouter();
 
-  // Función para cerrar sesión: limpia todo y redirige
   const performLogout = useCallback(() => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
@@ -33,23 +27,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     router.push('/login');
   }, [router]);
 
-  // Actualiza el estado y el localStorage al mismo tiempo
   const updateUser = (newUser: User) => {
     localStorage.setItem('user', JSON.stringify(newUser));
     setUser(newUser);
   };
 
- const refreshUser = useCallback(async (): Promise<void> => {
-  try {
-    const data = await apiFetch<User>('/auth/me');
-    if (data) updateUser(data);
-  } catch (error: unknown) {
-    if (error instanceof ApiFetchError && error.response.status === 401) {
-      console.log("Sesión inválida, cerrando...");
-      performLogout();
+  const refreshUser = useCallback(async (): Promise<void> => {
+    try {
+      const data = await apiFetch<User>('/auth/me');
+      if (data) {
+        updateUser(data);
+      }
+    } catch (error: unknown) {
+      if (error instanceof ApiFetchError && error.response.status === 401) {
+        console.log("Sesión inválida o expirada, cerrando...");
+        performLogout();
+      }
     }
-  }
-}, [performLogout]);
+  }, [performLogout]);
 
   useEffect(() => {
     let isMounted = true;
@@ -58,13 +53,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const savedUser = localStorage.getItem('user');
       const token = localStorage.getItem('token');
       
-      if (savedUser) setUser(JSON.parse(savedUser));
+      if (savedUser) {
+        setUser(JSON.parse(savedUser));
+        // ESTRATEGIA OPTIMISTA: Si tenemos datos locales, liberamos la interfaz de inmediato
+        if (isMounted) setLoading(false);
+      }
 
       if (token) {
-        await refreshUser();
+        // Ejecutamos la validación en segundo plano sin usar 'await' para no congelar el renderizado
+        refreshUser().finally(() => {
+          if (isMounted) setLoading(false);
+        });
+      } else {
+        // Si no hay token, no hay nada que validar, dejamos de cargar inmediatamente
+        if (isMounted) setLoading(false);
       }
-      
-      if (isMounted) setLoading(false);
     };
 
     initAuth();

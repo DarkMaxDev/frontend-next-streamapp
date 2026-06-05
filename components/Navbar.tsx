@@ -3,13 +3,7 @@ import { useState } from 'react';
 import Link from "next/link";
 import { useRouter } from 'next/navigation';
 import { Search } from 'lucide-react';
-import dynamic from 'next/dynamic';
-
-// Importamos dinámicamente el componente de auth desactivando SSR
-const DynamicAuth = dynamic(() => import("./DynamicAuth"), {
-  ssr: false,
-  loading: () => <span className="text-xs text-zinc-500">Cargando...</span>
-});
+import DynamicAuth from './DynamicAuth'; // <--- Importación limpia y directa
 
 export default function Navbar() {
   const [searchQuery, setSearchQuery] = useState('');

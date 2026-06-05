@@ -5,40 +5,32 @@ import { useRouter } from 'next/navigation';
 import { apiFetch } from '../../utils/api';
 import { Content } from '../../types';
 
-interface ContentExtended extends Content {
-  status?: 'en_emision' | 'finalizada';
-}
-
 export default function AdminContentList() {
   const router = useRouter();
-  const [catalogo, setCatalogo] = useState<ContentExtended[]>([]);
+  const [catalogo, setCatalogo] = useState<Content[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [busqueda, setBusqueda] = useState<string>('');
   const [filtroTipo, setFiltroTipo] = useState<string>('todos');
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
-  // Función para cargar catálogo que puede ser llamada desde el useEffect o botones manualmente
   const cargarCatalogo = async () => {
     setLoading(true);
     try {
-      const data = await apiFetch('/content/all/list') as ContentExtended[];
+      const data = await apiFetch('/content/all/list') as Content[];
       setCatalogo(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error("Error al cargar el catálogo:", err);
-    } 
-    finally {
+    } finally {
       setLoading(false);
     }
   };
 
-  // Corrección de image_445a30.png: se ejecuta la carga al montar el componente de forma aislada
   useEffect(() => {
     let activo = true;
-
     const inicializar = async () => {
       setLoading(true);
       try {
-        const data = await apiFetch('/content/all/list') as ContentExtended[];
+        const data = await apiFetch('/content/all/list') as Content[];
         if (activo) setCatalogo(Array.isArray(data) ? data : []);
       } catch (err) {
         console.error("Error al cargar el catálogo:", err);
@@ -48,13 +40,10 @@ export default function AdminContentList() {
     };
 
     inicializar();
+    return () => { activo = false; };
+  }, []);
 
-    return () => {
-      activo = false;
-    };
-  }, []); // Arreglo de dependencias vacío = Solo se ejecuta al montar
-
-  const handleToggleStatus = async (item: ContentExtended) => {
+  const handleToggleStatus = async (item: Content) => {
     const nuevoEstado = item.status === 'en_emision' ? 'finalizada' : 'en_emision';
     setCatalogo(prev => prev.map(c => c._id === item._id ? { ...c, status: nuevoEstado } : c));
 
@@ -205,7 +194,7 @@ export default function AdminContentList() {
                         </button>
                         <button
                           type="button"
-                          onClick={() => handleEliminarContenido(item._id!, item.titulo)}
+                          onClick={() => handleEliminarContenido(item._id, item.titulo)}
                           className="text-xs font-bold text-red-500 hover:text-red-400 px-3 py-1.5 rounded-xl border border-transparent hover:border-red-500/20 hover:bg-red-500/5 transition-all"
                         >
                           🗑️ Eliminar

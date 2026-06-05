@@ -1,9 +1,8 @@
-// types.ts
-
 export interface Episodio {
   numero: number;
   titulo: string;
   url: string;
+  createdAt?: string;
 }
 
 export interface Temporada {
@@ -20,8 +19,8 @@ export interface Content {
   videoUrl?: string;   
   linkTrailer?: string;
   categorias: string[]; 
-  episodios?: Episodio[]; 
-  temporadas?: Temporada[]; 
+  episodios?: Episodio[]; // Retrocompatibilidad
+  temporadas?: Temporada[]; // Nueva estructura por niveles
   isPremium: boolean;
   status?: 'en_emision' | 'finalizada';
   createdAt?: string;
