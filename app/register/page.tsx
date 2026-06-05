@@ -1,0 +1,132 @@
+"use client";
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+
+export default function RegisterPage() {
+    const [formData, setFormData] = useState({
+        username: '',
+        email: '',
+        password: '',
+        confirmPassword: ''
+    });
+    const [loading, setLoading] = useState(false);
+    const router = useRouter();
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setFormData({ ...formData, [e.target.name]: e.target.value });
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        
+        if (formData.password !== formData.confirmPassword) {
+            alert("Las contraseñas no coinciden");
+            return;
+        }
+
+        setLoading(true);
+        try {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/register`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    username: formData.username,
+                    email: formData.email,
+                    pass: formData.password // Asegúrate si tu backend pide 'pass' o 'password'
+                })
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                
+                // Guardamos token y user para inicio de sesión automático tras registro
+                // Esto evita el error de contexto en el Navbar
+                localStorage.setItem('token', data.token);
+                localStorage.setItem('user', JSON.stringify(data.user));
+                
+                router.push('/');
+                router.refresh();
+            } else {
+                const errorData = await res.json();
+                alert(errorData.message || "Error al registrarse");
+            }
+        } catch (error) {
+            console.error("Error en registro:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <div className="relative min-h-screen flex items-center justify-center bg-black">
+            {/* Fondo con overlay oscuro */}
+            <div 
+                className="absolute inset-0 z-0 opacity-30"
+                style={{ 
+                    backgroundImage: 'url("https://i.blogs.es/14b05c/guardianes-de-la-noche-kimetsu-no-yaiba-la-fortaleza-infinita/650_1200.jpeg")',
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center'
+                }}
+            ></div>
+
+            {/* Contenedor del Formulario */}
+            <div className="relative z-10 w-full max-w-md p-10 bg-black/80 rounded-md border border-white/10 backdrop-blur-md shadow-2xl">
+                <h1 className="text-3xl font-bold text-white mb-8">Crea tu cuenta</h1>
+                
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    <input 
+                        type="text" 
+                        name="username"
+                        required
+                        placeholder="Nombre de usuario"
+                        className="w-full p-4 bg-[#333] text-white rounded outline-none border-b-2 border-transparent focus:border-red-600 transition-all"
+                        onChange={handleChange}
+                    />
+
+                    <input 
+                        type="email" 
+                        name="email"
+                        required
+                        placeholder="Correo electrónico"
+                        className="w-full p-4 bg-[#333] text-white rounded outline-none border-b-2 border-transparent focus:border-red-600 transition-all"
+                        onChange={handleChange}
+                    />
+
+                    <input 
+                        type="password" 
+                        name="password"
+                        required
+                        placeholder="Contraseña"
+                        className="w-full p-4 bg-[#333] text-white rounded outline-none border-b-2 border-transparent focus:border-red-600 transition-all"
+                        onChange={handleChange}
+                    />
+
+                    <input 
+                        type="password" 
+                        name="confirmPassword"
+                        required
+                        placeholder="Confirmar contraseña"
+                        className="w-full p-4 bg-[#333] text-white rounded outline-none border-b-2 border-transparent focus:border-red-600 transition-all"
+                        onChange={handleChange}
+                    />
+
+                    <button 
+                        type="submit"
+                        disabled={loading}
+                        className="w-full py-4 bg-red-600 hover:bg-red-700 text-white font-bold rounded mt-6 transition-transform active:scale-95 disabled:bg-red-800"
+                    >
+                        {loading ? 'Creando cuenta...' : 'Registrarse'}
+                    </button>
+                </form>
+
+                <div className="mt-8 text-gray-500 text-sm">
+                    ¿Ya tienes cuenta?{' '}
+                    <Link href="/login" className="text-white font-medium hover:underline">
+                        Inicia sesión aquí.
+                    </Link>
+                </div>
+            </div>
+        </div>
+    );
+}
