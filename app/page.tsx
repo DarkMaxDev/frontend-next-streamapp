@@ -57,7 +57,7 @@ export default function HomePage() {
       <div 
         className="relative h-[92vh] w-full flex flex-col justify-end pb-32 px-6 sm:px-12 md:px-20 transition-all duration-1000 ease-in-out"
         style={{ 
-          backgroundImage: `linear-gradient(to top, #0a0a0a 0%, rgba(10,10,10,0.8) 25%, rgba(10,10,10,0.2) 60%, rgba(0,0,0,0.7) 100%), url(${featured?.imagen || 'https://images.unsplash.com/photo-1616469829581-73993eb86b02?q=80&w=1600'})`,
+          backgroundImage: `linear-gradient(to top, #0a0a0a 0%, rgba(10,10,10,0.8) 25%, rgba(10,10,10,0.2) 60%, rgba(0,0,0,0.7) 100%), url(${featured?.imagen || 'https://wallpapers.com/images/hd/dark-netflix-5nlvx66m2mqqqi8f.jpg'})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center 20%'
         }}
