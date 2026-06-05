@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState, use } from 'react';
 import { apiFetch } from '../../../utils/api';
-import { Lock, Film, Tv, Calendar, Tag, Info } from 'lucide-react';
+import { Lock, Film, Tv, Calendar, Tag, Info, UserCheck } from 'lucide-react';
 import { Content, Episodio } from '../../../types';
 import { useAuth } from '../../../../components/AuthProvider';
 import Link from 'next/link';
@@ -12,7 +12,6 @@ interface CategoriaObjeto {
   nombre: string;
 }
 
-// Tipamos las posibles respuestas que tu backend puede retornar
 interface ApiResponse {
   content?: Content;
   data?: Content;
@@ -33,24 +32,30 @@ export default function WatchPage({ params }: { params: Promise<{ id: string }> 
   const [error, setError] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(true);
 
-  const isLocked = !authLoading && !!(data?.isPremium && user?.plan !== 'vip');
+ useEffect(() => {
+  // Si aún está cargando la autenticación, esperamos
+  if (authLoading || !id) return;
 
-  useEffect(() => {
-    if (authLoading || !id) return;
+  // Si el usuario NO está autenticado, evitamos la petición síncrona directa
+  if (!user) {
+    if (loading) { // Validamos si realmente necesita cambiar a false para no hacer renders infinitos
+      const timer = setTimeout(() => {
+        setLoading(false);
+      }, 0);
+      return () => clearTimeout(timer);
+    }
+    return;
+  }
 
     const loadContent = async () => {
       try {
         setLoading(true);
         const res = (await apiFetch(`/content/${id}`)) as ApiResponse;
         
-        // Desenvolvemos de forma segura y tipada comprobando las propiedades del objeto
         let media: Content | null = null;
         if (res) {
-          if (res.content) {
-            media = res.content;
-          } else if (res.data) {
-            media = res.data;
-          }
+          if (res.content) media = res.content;
+          else if (res.data) media = res.data;
         }
         
         if (!media) throw new Error("No se pudo localizar el recurso multimedia solicitado.");
@@ -71,23 +76,68 @@ export default function WatchPage({ params }: { params: Promise<{ id: string }> 
     };
 
     loadContent();
-  }, [id, authLoading]);
+  }, [id, authLoading, user]);
 
+  // 1. Estado de carga inicial
   if (authLoading || loading) {
     return (
       <div className="min-h-screen bg-[#09090b] flex flex-col items-center justify-center text-white gap-3">
         <div className="w-8 h-8 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />
-        <p className="text-[10px] tracking-widest text-zinc-500 font-bold">CARGANDO REPRODUCTOR...</p>
+        <p className="text-[10px] tracking-widest text-zinc-500 font-bold">VERIFICANDO CREDENCIALES...</p>
       </div>
     );
   }
 
+  // 2. VISTA PARA USUARIOS NO REGISTRADOS (Reemplaza la redirección automática)
+  if (!user) {
+    return (
+      <main className="min-h-screen bg-[#09090b] text-zinc-100 flex flex-col items-center justify-center p-4 antialiased">
+        <div className="max-w-md w-full bg-zinc-900/40 border border-zinc-800/80 p-8 rounded-2xl text-center space-y-6 backdrop-blur-md shadow-2xl">
+          <div className="w-14 h-14 bg-red-600/10 border border-red-500/20 text-red-500 flex items-center justify-center rounded-2xl mx-auto shadow-inner">
+            <UserCheck className="w-6 h-6" />
+          </div>
+
+          <div className="space-y-2">
+            <h2 className="text-xl font-black tracking-tight text-white sm:text-2xl">
+              Contenido Restringido
+            </h2>
+            <p className="text-xs text-zinc-400 leading-relaxed max-w-sm mx-auto">
+              Para disfrutar de este video, películas y tus animes favoritos de nuestro catálogo, necesitas formar parte de la plataforma.
+            </p>
+          </div>
+
+          <div className="pt-2 space-y-2.5">
+            <Link 
+              href="/register" 
+              className="block w-full text-center bg-red-600 text-white p-3.5 rounded-xl font-bold hover:bg-red-700 transition-all text-xs uppercase tracking-wider shadow-lg shadow-red-600/10 active:scale-[0.98] transform"
+            >
+              Crear una cuenta gratis
+            </Link>
+            <Link 
+              href="/login" 
+              className="block w-full text-center bg-zinc-900 text-zinc-300 p-3.5 rounded-xl font-bold hover:bg-zinc-800 hover:text-white transition-all text-xs uppercase tracking-wider border border-zinc-800/80 active:scale-[0.98] transform"
+            >
+              Iniciar Sesión
+            </Link>
+          </div>
+
+          <div className="pt-4 border-t border-zinc-800/60">
+            <Link href="/" className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors font-medium underline">
+              Volver a la cartelera principal
+            </Link>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  // 3. Vista de error de la API (Solo para logeados que tengan problemas con el contenido)
   if (error) {
     return (
       <div className="min-h-screen bg-[#09090b] text-white flex flex-col items-center justify-center p-6 text-center">
         <div className="bg-red-500/10 border border-red-500/20 p-4 rounded-2xl max-w-md">
           <p className="text-sm text-red-400 font-medium">{error}</p>
-          <Link href="/dashboard" className="inline-block mt-4 text-xs font-bold text-zinc-400 hover:text-white underline">
+          <Link href="/" className="inline-block mt-4 text-xs font-bold text-zinc-400 hover:text-white underline">
             Regresar al Catálogo
           </Link>
         </div>
@@ -95,10 +145,13 @@ export default function WatchPage({ params }: { params: Promise<{ id: string }> 
     );
   }
 
+  // Comprobación de Plan Premium
+  const isLocked = !!(data?.isPremium && user?.plan !== 'vip');
+
   return (
     <main className="min-h-screen bg-[#09090b] text-zinc-100 antialiased pb-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
-        <Link href="/dashboard" className="text-xs text-zinc-500 hover:text-red-500 transition-colors font-medium">
+        <Link href="/" className="text-xs text-zinc-500 hover:text-red-500 transition-colors font-medium">
           ← Volver a la cartelera
         </Link>
       </div>
@@ -137,7 +190,7 @@ export default function WatchPage({ params }: { params: Promise<{ id: string }> 
             <div>
               <div className="flex flex-wrap items-center gap-2 mb-2">
                 <span className="inline-flex items-center gap-1 bg-zinc-800 text-zinc-300 text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-md border border-zinc-700/50">
-                  {data?.tipo === 'pelicula' ? <Film className="w-3 h-3 text-red-400" /> : <Tv className="w-3 h-3 text-blue-400" /> }
+                  {data?.tipo === 'pelicula' ? <Film className="w-3 h-3 text-red-400" /> : <Tv className="w-3 h-3 text-blue-400" />}
                   {data?.tipo === 'anime' ? 'Anime' : data?.tipo === 'serie' ? 'Serie de TV' : 'Película'}
                 </span>
 
@@ -163,12 +216,10 @@ export default function WatchPage({ params }: { params: Promise<{ id: string }> 
               )}
             </div>
 
-            {/* Renderizado Seguro de Categorías */}
             {data?.categorias && data.categorias.length > 0 && (
               <div className="flex flex-wrap gap-1.5 items-center pt-1">
                 <Tag className="w-3 h-3 text-zinc-500 mr-1" />
                 {data.categorias.map((cat: string | CategoriaObjeto, i: number) => {
-                  // Validamos de forma segura si la categoría viene poblada o como id string
                   const nombreCat = typeof cat === 'object' && cat !== null ? cat.nombre : String(cat);
                   return (
                     <span key={i} className="text-[11px] font-medium text-zinc-400 bg-zinc-800/40 border border-zinc-800 px-2 py-0.5 rounded-md">
