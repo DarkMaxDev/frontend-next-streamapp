@@ -51,7 +51,7 @@ export default function LoginPage() {
             <div 
                 className="absolute inset-0 z-0 opacity-30"
                 style={{ 
-                    backgroundImage: 'url("https://i.blogs.es/14b05c/guardianes-de-la-noche-kimetsu-no-yaiba-la-fortaleza-infinita/650_1200.jpeg")',
+                    backgroundImage: 'url("https://previews.123rf.com/images/obolenskaya/obolenskaya2110/obolenskaya211000108/176673918-cinema-tv-shows-series-and-movies-funny-doodle-vector-set-hand-drawn-colorful-illustration-set.jpg")',
                     backgroundSize: 'cover',
                     backgroundPosition: 'center'
                 }}
