@@ -19,8 +19,8 @@ export interface Content {
   videoUrl?: string;   
   linkTrailer?: string;
   categorias: string[]; 
-  episodios?: Episodio[]; // Retrocompatibilidad
-  temporadas?: Temporada[]; // Nueva estructura por niveles
+  episodios?: Episodio[];
+  temporadas?: Temporada[];
   isPremium: boolean;
   status?: 'en_emision' | 'finalizada';
   createdAt?: string;

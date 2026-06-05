@@ -3,12 +3,10 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
-// Definimos la estructura exacta de cuando el backend responde con éxito (200 OK)
 interface RegisterSuccessResponse {
     msg: string;
 }
 
-// Definimos la estructura de cuando el backend responde con un error (400, 500, etc.)
 interface RegisterErrorResponse {
     msg?: string;
     error?: string;
@@ -53,14 +51,11 @@ export default function RegisterPage() {
                 const data: RegisterSuccessResponse = await res.json();
                 alert(data.msg || "¡Usuario registrado con éxito!");
                 
-                // Redireccionamos al login ya que el backend de registro no inicia sesión automáticamente
                 router.push('/login');
                 router.refresh();
             } else {
-                // Tipamos la respuesta como error estricto
                 const errorData: RegisterErrorResponse = await res.json();
                 
-                // Buscamos si el backend envió el fallo en 'msg' o en 'error'
                 const errorMessage = errorData.msg || errorData.error || "Error al registrarse";
                 alert(errorMessage);
             }
@@ -74,11 +69,10 @@ export default function RegisterPage() {
 
     return (
         <div className="relative min-h-screen flex items-center justify-center bg-black">
-            {/* Fondo con overlay oscuro */}
             <div 
                 className="absolute inset-0 z-0 opacity-30"
                 style={{ 
-                    backgroundImage: 'url("https://i.blogs.es/14b05c/guardianes-de-la-noche-kimetsu-no-yaiba-la-fortaleza-infinita/650_1200.jpeg")',
+                    backgroundImage: 'url("https://previews.123rf.com/images/obolenskaya/obolenskaya2110/obolenskaya211000108/176673918-cinema-tv-shows-series-and-movies-funny-doodle-vector-set-hand-drawn-colorful-illustration-set.jpg")',
                     backgroundSize: 'cover',
                     backgroundPosition: 'center'
                 }}

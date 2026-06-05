@@ -54,7 +54,6 @@ export default function HomePage() {
     <main className="min-h-screen bg-[#0a0a0a] text-zinc-100 pb-32 overflow-x-hidden antialiased selection:bg-red-600 selection:text-white">
       <Navbar />
 
-      {/* Hero Showcase Banner */}
       <div 
         className="relative h-[92vh] w-full flex flex-col justify-end pb-32 px-6 sm:px-12 md:px-20 transition-all duration-1000 ease-in-out"
         style={{ 
@@ -94,10 +93,7 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* Contenedor de Listas */}
       <div className="px-6 sm:px-12 md:px-20 space-y-16 -mt-24 relative z-30">
-        
-        {/* RECOMENDACIONES PREMIUM */}
         {recommendations.length > 0 && (
           <div className="relative">
             <h2 className="text-sm md:text-base font-black uppercase tracking-[0.15em] mb-4 text-zinc-400 pl-1">
@@ -130,7 +126,6 @@ export default function HomePage() {
           </div>
         )}
 
-        {/* FILAS DINÁMICAS POR CATEGORÍA */}
         {categories.map((cat) => (
           <div key={cat._id} className="relative group/row">
             <div className="flex items-baseline justify-between mb-4 pl-1">
@@ -140,7 +135,6 @@ export default function HomePage() {
               </h2>
             </div>
             
-            {/* Contenedor Horizontal Deslizable con máscara difuminada en bordes */}
             <div className="flex gap-4 overflow-x-auto pb-6 pt-1 -my-1 scrollbar-none scroll-smooth snap-x snap-mandatory">
               {cat.contents && cat.contents.length > 0 ? (
                 cat.contents.map((item) => (

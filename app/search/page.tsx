@@ -60,7 +60,6 @@ function SearchResults() {
                 href={`/dashboard/watch/${item._id}`} 
                 className="block group relative"
               >
-                {/* Bloqueo visual consistente */}
                 {isLocked && (
                   <div className="absolute inset-0 z-10 bg-black/80 backdrop-blur-[2px] flex flex-col items-center justify-center rounded-xl">
                     <Lock className="w-6 h-6 text-amber-500 mb-1" />

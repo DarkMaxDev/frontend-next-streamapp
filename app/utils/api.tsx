@@ -4,7 +4,6 @@ interface ApiErrorResponse {
   msg?: string;
 }
 
-// 1. Clase personalizada para errores de API
 export class ApiFetchError extends Error {
   response: { status: number; data: ApiErrorResponse };
   constructor(status: number, data: ApiErrorResponse) {
@@ -31,7 +30,6 @@ export const apiFetch = async <T = unknown>(endpoint: string, options: RequestIn
     const response = await fetch(`${API_URL}${endpoint}`, { ...options, headers, signal: controller.signal });
     clearTimeout(timeoutId);
 
-    // Si no es OK, lanzamos nuestra clase ApiFetchError
     if (!response.ok) {
       const errorData = (await response.json().catch(() => ({ msg: "Error desconocido" }))) as ApiErrorResponse;
       throw new ApiFetchError(response.status, errorData);
@@ -41,12 +39,10 @@ export const apiFetch = async <T = unknown>(endpoint: string, options: RequestIn
   } catch (error: unknown) {
     clearTimeout(timeoutId);
 
-    // 2. Manejo de Timeout
     if (error instanceof Error && error.name === 'AbortError') {
       throw new ApiFetchError(408, { msg: "Servidor lento" });
     }
 
-    // 3. Re-lanzar si ya es nuestro error
     throw error;
   }
 };
