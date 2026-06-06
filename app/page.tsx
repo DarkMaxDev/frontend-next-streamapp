@@ -135,7 +135,8 @@ export default function HomePage() {
               </h2>
             </div>
             
-            <div className="flex gap-4 overflow-x-auto pb-6 pt-1 -my-1 scrollbar-none scroll-smooth snap-x snap-mandatory">
+            {/* MODIFICACIÓN AQUÍ: Se agregaron clases para dar estilo a la barra de desplazamiento y se quitó scrollbar-none */}
+            <div className="flex gap-4 overflow-x-auto pb-4 pt-1 -my-1 scroll-smooth snap-x snap-mandatory [&::-webkit-scrollbar]:h-2 [&::-webkit-scrollbar-track]:bg-zinc-950 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-thumb]:bg-zinc-800 hover:[&::-webkit-scrollbar-thumb]:bg-red-600 [&::-webkit-scrollbar-thumb]:rounded-full">
               {cat.contents && cat.contents.length > 0 ? (
                 cat.contents.map((item) => (
                   <Link
